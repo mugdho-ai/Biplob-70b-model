@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="download.png" type="download.png" />
+
+    <title>Biplob-Ai</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            boxShadow: {
+              soft: "0 10px 30px rgba(0,0,0,0.08)",
+            },
+            colors: {
+              brand: {
+                DEFAULT: "#4f46e5",
+                50: "#eef2ff",
+                100: "#e0e7ff",
+                200: "#c7d2fe",
+                300: "#a5b4fc",
+                400: "#818cf8",
+                500: "#6366f1",
+                600: "#4f46e5",
+                700: "#4338ca",
+                800: "#3730a3",
+                900: "#312e81",
+              },
+            },
+          },
+        },
+        darkMode: "class",
+      };
+    </script>
+    <style>
+      .scrollbar-thin {
+        scrollbar-width: thin;
+      }
+      .scrollbar-thin::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      .scrollbar-thin::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 999px;
+      }
+      .bubble {
+        max-width: 80%;
+      }
+      .prose a {
+        text-decoration: underline;
+      }
+      .dropzone-active {
+        outline: 2px dashed #6366f1;
+        outline-offset: 4px;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
+    <!-- Header -->
+    <header
+      class="sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800"
+    >
+      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
+        <div
+          class="w-9 h-9 rounded-2xl bg-brand-600 text-white grid place-items-center font-bold shadow-soft"
+        >
+          A
+        </div>
+        <div class="flex-1">
+          <h1 class="text-lg font-semibold leading-tight">Biplob AI</h1>
+          <p class="text-xs text-gray-500 dark:text-gray-400">
+            Powered by Mugdho.io • OpenRouter • Client‑side only
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            id="settingsBtn"
+            aria-label="Open Settings"
+            class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            Settings
+          </button>
+          <button
+            id="exportBtn"
+            aria-label="Export chats"
+            class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            Export
+          </button>
+          <button
+            id="themeBtn"
+            aria-label="Toggle dark mode"
+            class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            🌓
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main
+      class="max-w-6xl mx-auto px-2 md:px-4 py-4 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4"
+    >
+      <!-- Sidebar -->
+      <aside class="lg:sticky lg:top-[72px] h-max">
+        <!-- New chat / history -->
+        <div
+          class="bg-white dark:bg-gray-900 rounded-2xl shadow-soft border border-gray-200 dark:border-gray-800 p-4 space-y-3"
+        >
+          <div class="flex items-center justify-between">
+            <h2 class="font-semibold">Conversations</h2>
+            <button
+              id="newChatBtn"
+              aria-label="New chat"
+              class="text-xs px-2 py-1 rounded-lg bg-brand-600 text-white"
+            >
+              New
+            </button>
+          </div>
+          <div
+            id="historyList"
+            class="space-y-1 max-h-[38vh] overflow-auto scrollbar-thin"
+          ></div>
+          <div class="pt-2 flex gap-2">
+            <button
+              id="clearHistoryBtn"
+              aria-label="Clear chat history"
+              class="text-xs px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-800"
+            >
+              Clear
+            </button>
+            <button
+              id="popularBtn"
+              aria-label="Show popular chats"
+              class="text-xs px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-800"
+            >
+              Popular
+            </button>
+          </div>
+        </div>
+
+        <!-- Model & Options -->
+        <div
+          class="bg-white dark:bg-gray-900 rounded-2xl shadow-soft border border-gray-200 dark:border-gray-800 p-4 mt-4 space-y-3"
+        >
+          <h2 class="font-semibold">Model & Options</h2>
+          <label class="text-xs text-gray-500">Text model</label>
+          <select
+            id="textModel"
+            aria-label="Select text model"
+            class="w-full px-3 py-2 rounded-xl border bg-transparent border-gray-200 dark:border-gray-800"
+          >
+            <option value="openai/gpt-4o-mini">Biplob 3 70B Instruct</option>
+            <option value="openai/gpt-4o-mini">Ruby-3.4</option>
+            <option value="google/gemini-1.5-flash">
+              private-student-only🔒
+            </option>
+          </select>
+          <label class="text-xs text-gray-500">Vision model (for images)</label>
+          <select
+            id="visionModel"
+            aria-label="Select vision model"
+            class="w-full px-3 py-2 rounded-xl border bg-transparent border-gray-200 dark:border-gray-800"
+          >
+            <option value="meta-llama/llama-3.2-11b-vision-instruct">
+              Llama 3.2 11B Vision
+            </option>
+            <option value="openai/gpt-4o-mini">Mugdho-vision</option>
+          </select>
+          <label class="inline-flex items-center gap-2 text-sm">
+            <input
+              id="webSearchToggle"
+              type="checkbox"
+              class="rounded"
+              aria-label="Enable web search"
+            />
+            Enable Web Search
+          </label>
+          <div id="searchProviderBox" class="space-y-2 hidden">
+            <label class="text-xs text-gray-500">Search provider</label>
+            <select
+              id="searchProvider"
+              aria-label="Select search provider"
+              class="w-full px-3 py-2 rounded-xl border bg-transparent border-gray-200 dark:border-gray-800"
+            >
+              <option value="tavily">Tavily (recommended)</option>
+              <option value="serpapi">SerpAPI (Google)</option>
+            </select>
+            <input
+              id="searchApiKey"
+              aria-label="Search API key"
+              class="w-full px-3 py-2 rounded-xl border bg-transparent border-gray-200 dark:border-gray-800"
+              placeholder="Search API key"
+            />
+          </div>
+        </div>
+      </aside>
+
+      <!-- Chat column -->
+      <section class="flex flex-col min-h-[70vh]">
+        <div
+          id="chat"
+          class="flex-1 space-y-4 p-2 overflow-auto scrollbar-thin"
+        >
+          <!-- messages injected here -->
+        </div>
+
+        <!-- Dropzone preview -->
+        <div
+          id="dropzone"
+          class="mt-2 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 p-3 text-sm text-gray-500"
+        >
+          Drop an image to attach…
+        </div>
+
+        <!-- Composer -->
+        <div
+          class="mt-3 bg-white dark:bg-gray-900 rounded-2xl shadow-soft border border-gray-200 dark:border-gray-800 p-3"
+        >
+          <div class="flex items-center gap-2">
+            <input id="fileInput" type="file" accept="image/*" class="hidden" />
+            <button
+              id="attachBtn"
+              aria-label="Attach image"
+              class="px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-800"
+            >
+              📎
+            </button>
+            <textarea
+              id="prompt"
+              aria-label="Message input"
+              rows="2"
+              placeholder="Ask anything… (you can attach an image)"
+              class="flex-1 px-3 py-2 rounded-xl border bg-transparent border-gray-200 dark:border-gray-800 resize-none"
+            ></textarea>
+            <button
+              id="sendBtn"
+              aria-label="Send message"
+              class="px-4 py-2 rounded-xl bg-brand-600 text-white"
+            >
+              Send
+            </button>
+          </div>
+          <div id="attachPreview" class="mt-2 hidden"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Settings Modal -->
+    <dialog
+      id="settingsModal"
+      class="backdrop:bg-black/30 rounded-2xl p-0 w-[92vw] max-w-xl"
+    >
+      <form
+        method="dialog"
+        class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden"
+      >
+        <div
+          class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between"
+        >
+          <h3 class="font-semibold">Settings</h3>
+          <button
+            value="cancel"
+            class="px-2 py-1 text-sm rounded-lg border border-gray-200 dark:border-gray-800"
+          >
+            Close
+          </button>
+        </div>
+        <div class="p-4 space-y-4">
+          <div>
+            <label class="text-xs text-gray-500">OpenRouter API Key</label>
+            <input
+              id="openrouterKey"
+              class="w-full px-3 py-2 rounded-xl border bg-transparent border-gray-200 dark:border-gray-800"
+              placeholder="sk-or-v1-…"
+            />
+            <p class="text-xs text-gray-500 mt-1">
+              Key is stored locally in your browser only.
+            </p>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-500"
+                >System Prompt (optional)</label
+              >
+              <textarea
+                id="systemPrompt"
+                rows="4"
+                class="w-full px-3 py-2 rounded-xl border bg-transparent border-gray-200 dark:border-gray-800"
+                placeholder="you are Ruby an ai . you will help me by providing codes,maths etc"
+              ></textarea>
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">Temperature</label>
+              <input
+                id="temperature"
+                type="number"
+                step="0.1"
+                min="0"
+                max="1.5"
+                value="0.3"
+                class="w-full px-3 py-2 rounded-xl border bg-transparent border-gray-200 dark:border-gray-800"
+              />
+              <label class="text-xs text-gray-500 block mt-3">Max tokens</label>
+              <input
+                id="maxTokens"
+                type="number"
+                min="256"
+                max="4096"
+                value="1024"
+                class="w-full px-3 py-2 rounded-xl border bg-transparent border-gray-200 dark:border-gray-800"
+              />
+            </div>
+          </div>
+          <div class="border-t border-gray-200 dark:border-gray-800 pt-3">
+            <h4 class="font-semibold mb-1">Popular Chats</h4>
+            <div
+              id="popularBox"
+              class="text-sm text-gray-600 dark:text-gray-300"
+            >
+              No data yet.
+            </div>
+          </div>
+          <div class="flex gap-2 pt-2">
+            <button
+              id="saveSettingsBtn"
+              value="save"
+              class="px-3 py-2 rounded-xl bg-brand-600 text-white"
+            >
+              Save
+            </button>
+            <button
+              id="clearAllBtn"
+              value="clear"
+              class="px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-800"
+            >
+              Clear All Data
+            </button>
+          </div>
+        </div>
+      </form>
+    </dialog>
+
+    <script>
+      // ===== Utilities & Storage =====
+      const $ = (q) => document.querySelector(q);
+      const chatEl = $("#chat");
+      const historyList = $("#historyList");
+      const attachPreview = $("#attachPreview");
+      const fileInput = $("#fileInput");
+      const dropzone = $("#dropzone");
+
+      const store = {
+        get chats() {
+          return JSON.parse(localStorage.getItem("chats") || "[]");
+        },
+        set chats(val) {
+          localStorage.setItem("chats", JSON.stringify(val));
+        },
+        currentId: null,
+      };
+      let state = { convo: null, imageDataUrl: null };
+      let lastRenderedIndex = 0;
+
+      const defaultKey =
+        "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";
+
+      // ===== Markdown & Bubbles =====
+      function mdToHtml(md) {
+        return marked.parse(md);
+      }
+
+      function messageBubble(role, html) {
+        const div = document.createElement("div");
+        div.className = `bubble p-3 rounded-2xl ${
+          role === "user"
+            ? "self-end bg-blue-100 dark:bg-blue-900"
+            : "self-start bg-gray-100 dark:bg-gray-800"
+        }`;
+        div.innerHTML = `<div class="prose dark:prose-invert">${html}</div>`;
+        chatEl.appendChild(div);
+        chatEl.scrollTop = chatEl.scrollHeight;
+      }
+
+      function renderChatIncremental() {
+        if (!state.convo) return;
+        const msgs = state.convo.messages;
+        for (let i = lastRenderedIndex; i < msgs.length; i++) {
+          const m = msgs[i];
+          const html = m.html || mdToHtml(m.content);
+          messageBubble(m.role, html);
+        }
+        lastRenderedIndex = msgs.length;
+      }
+
+      function addMessage(role, content, isHtml = false) {
+        const msg = { role, content };
+        if (isHtml) msg.html = content;
+        state.convo.messages.push(msg);
+        renderChatIncremental();
+      }
+
+      function saveChat() {
+        if (!state.convo) return;
+        const idx = store.chats.findIndex((c) => c.id === state.convo.id);
+        if (idx >= 0) store.chats[idx] = state.convo;
+        else store.chats.push(state.convo);
+      }
+
+      function newChat() {
+        const id = Date.now();
+        state.convo = { id, messages: [] };
+        lastRenderedIndex = 0;
+        chatEl.innerHTML = "";
+        store.currentId = id;
+      }
+
+      function loadHistory() {
+        historyList.innerHTML = "";
+        store.chats.forEach((c) => {
+          const btn = document.createElement("button");
+          btn.className =
+            "block w-full text-left px-3 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800";
+          btn.textContent =
+            c.messages[0]?.content?.substring(0, 30) || "New Chat";
+          btn.onclick = () => {
+            state.convo = c;
+            lastRenderedIndex = 0;
+            chatEl.innerHTML = "";
+            renderChatIncremental();
+          };
+          historyList.appendChild(btn);
+        });
+      }
+
+      // ===== AI Call =====
+      async function callOpenRouter(prompt) {
+        const key = $("#openrouterKey").value.trim() || defaultKey;
+        const model = $("#textModel").value;
+        const messages = [
+          {
+            role: "system",
+            content:
+              $("#systemPrompt").value ||
+              "you are Biplop. your creator is Jonaid al habib Mugdho. your work is to help the user in study. your creator has his own company named Mugdho Ai infra.you are the first ai from Bangladesh",
+          },
+          { role: "user", content: prompt },
+        ];
+        try {
+          const res = await fetch(
+            "https://openrouter.ai/api/v1/chat/completions",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + key,
+              },
+              body: JSON.stringify({
+                model,
+                messages,
+                max_tokens: parseInt($("#maxTokens").value),
+                temperature: parseFloat($("#temperature").value),
+              }),
+            },
+          );
+          const data = await res.json();
+          return (
+            data?.choices?.[0]?.message?.content ||
+            "[আপনি অনেক গরীব। আপনার সাথে এত কথা বলতে পারবো না। সাবস্ক্রিপশন কিনুন, না হলে যান।]"
+          );
+        } catch (e) {
+          console.error(e);
+          return "[Error: AI not responding]";
+        }
+      }
+
+      // ===== Drag & Drop / File Upload =====
+      $("#attachBtn").onclick = () => fileInput.click();
+      fileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file || !file.type.startsWith("image/")) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          state.imageDataUrl = ev.target.result;
+          attachPreview.innerHTML = `<img src="${state.imageDataUrl}" class="max-w-full rounded-xl" />`;
+          attachPreview.classList.remove("hidden");
+        };
+        reader.readAsDataURL(file);
+      };
+      ["dragover", "dragenter"].forEach((evt) => {
+        dropzone.addEventListener(evt, (e) => {
+          e.preventDefault();
+          dropzone.classList.add("dropzone-active");
+        });
+      });
+      ["dragleave", "drop"].forEach((evt) => {
+        dropzone.addEventListener(evt, (e) => {
+          e.preventDefault();
+          dropzone.classList.remove("dropzone-active");
+        });
+      });
+      dropzone.addEventListener("drop", (e) => {
+        const file = e.dataTransfer.files[0];
+        if (!file || !file.type.startsWith("image/")) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          state.imageDataUrl = ev.target.result;
+          attachPreview.innerHTML = `<img src="${state.imageDataUrl}" class="max-w-full rounded-xl" />`;
+          attachPreview.classList.remove("hidden");
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // ===== Events =====
+      $("#newChatBtn").onclick = () => {
+        newChat();
+        loadHistory();
+      };
+
+      $("#sendBtn").onclick = async () => {
+        const prompt = $("#prompt").value.trim();
+        if (!prompt && !state.imageDataUrl) return;
+
+        if (prompt) addMessage("user", prompt);
+
+        if (state.imageDataUrl) {
+          const html = `<img src="${state.imageDataUrl}" class="max-w-xs rounded-xl" />`;
+          addMessage("user", html, true);
+          state.imageDataUrl = null;
+          attachPreview.classList.add("hidden");
+          fileInput.value = "";
+        }
+
+        $("#prompt").value = "";
+
+        if (prompt) {
+          const reply = await callOpenRouter(prompt);
+          addMessage("assistant", reply);
+        }
+
+        saveChat();
+        loadHistory();
+      };
+
+      $("#settingsBtn").onclick = () => $("#settingsModal").showModal();
+
+      $("#saveSettingsBtn").onclick = () => {
+        const key = $("#openrouterKey").value.trim();
+        if (key !== defaultKey) localStorage.setItem("openrouterKey", key);
+        else localStorage.removeItem("openrouterKey");
+        $("#settingsModal").close();
+      };
+
+      $("#clearHistoryBtn").onclick = () => {
+        localStorage.removeItem("chats");
+        loadHistory();
+        newChat();
+      };
+      $("#themeBtn").onclick = () => document.body.classList.toggle("dark");
+
+      // ===== Initialize =====
+      const savedKey = localStorage.getItem("openrouterKey");
+      $("#openrouterKey").value = savedKey || defaultKey;
+
+      loadHistory();
+      if (store.chats.length > 0) {
+        state.convo = store.chats[0];
+        renderChatIncremental();
+      } else newChat();
+    </script>
+  </body>
+</html>
