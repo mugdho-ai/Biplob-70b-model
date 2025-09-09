@@ -63,8 +63,7 @@ Human-friendly API – Simple integration with Python, JS, and Go.
 
 ---
 
-Architecture
-
+```mermaid
 graph TD
     A[User Input] --> B[Data Preprocessor]
     B --> C[Ruby AI Core]
@@ -73,7 +72,7 @@ graph TD
     D --> F[Semantic Inference Engine]
     E --> F
     F --> G[Response & Analytics Output]
-
+```
 
 ---
 
